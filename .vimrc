@@ -92,6 +92,8 @@ let g:gruvbox_italicize_strings = 0
 let g:gruvbox_improved_strings = 0
 let g:gruvbox_improved_warnings = 0
 
+set clipboard=unnamed
+
 " 真彩色支持
 " 注意：macOS Terminal.app 不支持真彩色，开启后颜色反而更差
 " iTerm2 / Alacritty / WezTerm 等现代终端建议开启
