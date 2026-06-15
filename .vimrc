@@ -159,9 +159,9 @@ endif
 " 快捷键
 nnoremap <leader>n :NERDTreeFocus<CR>
 nnoremap <C-n> :NERDTreeToggle<CR>
-" 在命令行输入 :nt 时自动展开为 :NERDTree
-cnoreabbrev nt NERDTree
-nnoremap nt :NERDTree<CR>
+" 在命令行输入 :dt 时自动展开为 :NERDTree
+cnoreabbrev dt NERDTree
+nnoremap dt :NERDTree<CR>
 
 nnoremap <leader>f :NERDTreeFind<CR>      " 在 NERDTree 中定位当前文件
 
