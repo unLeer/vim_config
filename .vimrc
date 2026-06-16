@@ -163,7 +163,8 @@ nnoremap <C-n> :NERDTreeToggle<CR>
 cnoreabbrev dt NERDTree
 nnoremap dt :NERDTree<CR>
 
-nnoremap <leader>f :NERDTreeFind<CR>      " 在 NERDTree 中定位当前文件
+" 在 NERDTree 中定位当前文件
+nnoremap <leader>f :NERDTreeFind<CR>
 
 " 启动时自动打开（没有指定文件时）
 autocmd StdinReadPre * let s:std_in=1
@@ -233,58 +234,105 @@ let g:go_doc_popup_window = 1             " 使用浮动窗口显示文档
 " Go 开发快捷键（vim-go）
 " --------------------
 " 跳转
-nnoremap <leader>gd :GoDef<CR>            " 跳转到定义
-nnoremap <leader>gs :GoDefSplit<CR>       " 在 split 中跳转到定义
-nnoremap <leader>gv :GoDefVertical<CR>    " 在 vsplit 中跳转到定义
-nnoremap <leader>gt :GoDefType<CR>        " 跳转到类型定义
-nnoremap <leader>gr :GoReferrers<CR>      " 查找引用 ★
-nnoremap <leader>gi :GoImplements<CR>     " 查找接口实现
-nnoremap <leader>gc :GoCallers<CR>        " 查找调用者
-nnoremap <leader>gC :GoCallees<CR>        " 查找被调用者
-nnoremap <leader>gp :GoChannelPeers<CR>   " 查找 channel peers
+" 跳转到定义
+nnoremap <leader>gd :GoDef<CR>
+" 在 split 中跳转到定义
+nnoremap <leader>gs :GoDefSplit<CR>
+" 在 vsplit 中跳转到定义
+nnoremap <leader>gv :GoDefVertical<CR>
+" 跳转到类型定义
+nnoremap <leader>gt :GoDefType<CR>
+" 查找引用 ★
+nnoremap <leader>gr :GoReferrers<CR>
+" 查找接口实现
+nnoremap <leader>gi :GoImplements<CR>
+" 查找调用者
+nnoremap <leader>gc :GoCallers<CR>
+" 查找被调用者
+nnoremap <leader>gC :GoCallees<CR>
+" 查找 channel peers
+nnoremap <leader>gp :GoChannelPeers<CR>
 
 " 直接 gr 查找引用（不依赖 leader 键）
 nnoremap gr :GoReferrers<CR>
 
 " 检查与构建
-nnoremap <leader>lb :GoBuild<CR>          " 构建
-nnoremap <leader>lt :GoTest<CR>           " 运行当前测试
-nnoremap <leader>lT :GoTestFunc<CR>       " 运行当前函数测试
-nnoremap <leader>lc :GoCoverage<CR>       " 显示测试覆盖率
-nnoremap <leader>ll :GoLint<CR>           " 运行 linter
-nnoremap <leader>lv :GoVet<CR>            " 运行 go vet
-nnoremap <leader>le :GoErrCheck<CR>      " 运行 errcheck
-nnoremap <leader>lm :GoMetaLinter<CR>    " 运行全部 linter
+" 构建
+nnoremap <leader>lb :GoBuild<CR>
+" 运行当前测试
+nnoremap <leader>lt :GoTest<CR>
+" 运行当前函数测试
+nnoremap <leader>lT :GoTestFunc<CR>
+" 显示测试覆盖率
+nnoremap <leader>lc :GoCoverage<CR>
+" 运行 linter
+nnoremap <leader>ll :GoLint<CR>
+" 运行 go vet
+nnoremap <leader>lv :GoVet<CR>
+" 运行 errcheck
+nnoremap <leader>le :GoErrCheck<CR>
+" 运行全部 linter
+nnoremap <leader>lm :GoMetaLinter<CR>
 
 " 信息查看
-nnoremap <leader>ld :GoDoc<CR>            " 查看文档
-nnoremap <leader>lD :GoDocBrowser<CR>     " 在浏览器中查看文档
-nnoremap <leader>li :GoInfo<CR>          " 显示类型信息
-nnoremap <leader>ls :GoDescribe<CR>       " 描述标识符
+" 查看文档
+nnoremap <leader>ld :GoDoc<CR>
+" 在浏览器中查看文档
+nnoremap <leader>lD :GoDocBrowser<CR>
+" 显示类型信息
+nnoremap <leader>li :GoInfo<CR>
+" 描述标识符
+nnoremap <leader>ls :GoDescribe<CR>
 
 " 代码操作
-nnoremap <leader>lf :GoFmt<CR>            " 手动格式化
-nnoremap <leader>la :GoAlternate<CR>      " 切换 .go / _test.go
-nnoremap <leader>lr :GoRename<CR>         " 重命名（会提示输入新名称）
-nnoremap <leader>lx :GoExtract<CR>        " 提取函数（需要 gopls）
+" 手动格式化
+nnoremap <leader>lf :GoFmt<CR>
+" 切换 .go / _test.go
+nnoremap <leader>la :GoAlternate<CR>
+" 重命名（会提示输入新名称）
+nnoremap <leader>lr :GoRename<CR>
+" 提取函数（需要 gopls）
+nnoremap <leader>lx :GoExtract<CR>
 
 " --------------------
 " fzf 配置（模糊查找）
 " --------------------
 " 文件查找
 nnoremap <leader>ff :Files<CR>
-nnoremap <leader>fg :GFiles<CR>           " Git 文件
-nnoremap <leader>fb :Buffers<CR>          " Buffer 切换
-nnoremap <leader>fh :History<CR>          " 最近打开的文件
-nnoremap <leader>fl :BLines<CR>           " 当前文件内行查找
-nnoremap <leader>fL :Lines<CR>            " 所有打开文件的行查找
-nnoremap <leader>fc :Commits<CR>          " Git commits
-nnoremap <leader>ft :BTags<CR>           " 当前文件标签
-nnoremap <leader>fT :Tags<CR>             " 项目标签
+" Git 文件
+nnoremap <leader>fg :GFiles<CR>
+" Buffer 切换
+nnoremap <leader>fb :Buffers<CR>
+" 最近打开的文件
+nnoremap <leader>fh :History<CR>
+" 当前文件内行查找
+nnoremap <leader>fl :BLines<CR>
+" 所有打开文件的行查找
+nnoremap <leader>fL :Lines<CR>
+" Git commits
+nnoremap <leader>fc :Commits<CR>
+" 当前文件标签
+nnoremap <leader>ft :BTags<CR>
+" 项目标签
+nnoremap <leader>fT :Tags<CR>
+" 在所有文件中搜索内容（Ripgrep）
+nnoremap <leader>rr :Rg<CR>
+
+" fzf 打开方式
+let g:fzf_action = {
+  \ 'ctrl-t': 'tab split',
+  \ 'ctrl-x': 'split',
+  \ 'ctrl-v': 'vsplit',
+  \ 'enter': 'tab split',
+  \ }
 
 " fzf 窗口设置
 let g:fzf_layout = { 'down': '40%' }
 let g:fzf_preview_window = ['right:50%', 'ctrl-/']
+
+" Rg 命令使用真正的 ripgrep（避免 shell 函数干扰）
+let g:fzf_rg_bin = '/opt/homebrew/bin/rg'
+command! -bang -nargs=* Rg call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(<q-args>), 1, fzf#vim#with_preview(), <bang>0)
 
 " --------------------
 " Tagbar 配置
@@ -379,6 +427,13 @@ nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
+" Tab 切换
+nnoremap <C-u> :tabp<CR>
+nnoremap <C-p> :tabn<CR>
+
+" 在 iTerm2 打开当前文件目录
+nnoremap <silent> <C-t> :call OpenItermInCurrentDir()<CR>
+
 " 分屏
 nnoremap <leader>v :vsplit<CR>
 nnoremap <leader>s :split<CR>
@@ -412,6 +467,28 @@ vnoremap <leader>y "+y
 nnoremap <leader>p "+p
 vnoremap <leader>p "+p
 nnoremap <leader>P "+P
+
+" --------------------
+" 自定义函数
+" --------------------
+" 在 iTerm2 打开当前文件目录（macOS）
+function! OpenItermInCurrentDir()
+    let l:dir = expand('%:p:h')
+    if l:dir == ''
+        let l:dir = getcwd()
+    endif
+
+    let l:cmd = 'osascript -e ''tell application "iTerm2"'' '
+                \ . '-e ''tell current window'' '
+                \ . '-e ''create tab with default profile'' '
+                \ . '-e ''tell current session of current tab'' '
+                \ . '-e ''write text "cd ' . shellescape(l:dir) . ' && clear"'' '
+                \ . '-e ''end tell'' '
+                \ . '-e ''end tell'' '
+                \ . '-e ''end tell'''
+
+    call system(l:cmd)
+endfunction
 
 " --------------------
 " 自动命令
