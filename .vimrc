@@ -159,11 +159,10 @@ endif
 " 快捷键
 nnoremap <leader>n :NERDTreeFocus<CR>
 nnoremap <C-n> :NERDTreeToggle<CR>
-" 在命令行输入 :dt 时自动展开为 :NERDTree
-cnoreabbrev dt NERDTree
-nnoremap dt :NERDTree<CR>
-
-" 在 NERDTree 中定位当前文件
+" 打开 NERDTree 并定位到当前文件
+cnoreabbrev dt NERDTreeFind
+nnoremap dt :NERDTreeFind<CR>
+" 在 NERDTree 中定位当前文件（备用）
 nnoremap <leader>f :NERDTreeFind<CR>
 
 " 启动时自动打开（没有指定文件时）
@@ -334,6 +333,18 @@ let g:fzf_preview_window = ['right:50%', 'ctrl-/']
 let g:fzf_rg_bin = '/opt/homebrew/bin/rg'
 command! -bang -nargs=* Rg call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(<q-args>), 1, fzf#vim#with_preview(), <bang>0)
 
+" 在当前文件目录下搜索
+function! RgInCurrentFileDir(...)
+    let l:dir = expand('%:p:h')
+    if l:dir == ''
+        let l:dir = getcwd()
+    endif
+    let l:query = a:0 > 0 ? a:1 : ''
+    call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(l:query) . ' ' . shellescape(l:dir), 1, fzf#vim#with_preview())
+endfunction
+command! -bang -nargs=* RgCurDir call RgInCurrentFileDir(<q-args>)
+nnoremap <leader>rn :call RgInCurrentFileDir()<CR>
+
 " --------------------
 " Tagbar 配置
 " --------------------
@@ -402,8 +413,13 @@ let g:airline_symbols.linenr = 'LN'
 let g:airline_symbols.maxlinenr = ''
 let g:airline_symbols.dirty = '*'
 
+" Tabline 配置（顶部标签栏）
 let g:airline#extensions#tabline#enabled = 1
-let g:airline#extensions#tabline#buffer_nr_show = 1
+let g:airline#extensions#tabline#buffer_nr_show = 0    " 不显示 buffer 编号，避免混乱
+let g:airline#extensions#tabline#show_tabs = 1         " 显示 tab
+let g:airline#extensions#tabline#show_buffers = 0     " 不显示 buffer（只显示 tab）
+let g:airline#extensions#tabline#tab_min_cnt = 1      " 至少显示一个 tab
+let g:airline#extensions#tabline#formatter = 'unique_tail_improved'  " 只显示文件名
 let g:airline#extensions#branch#enabled = 1
 let g:airline#extensions#hunks#enabled = 1
 
