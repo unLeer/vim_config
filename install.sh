@@ -207,6 +207,35 @@ check_go_tools() {
     ok "gotags"
 }
 
+# 检查并安装 buf CLI（Protobuf LSP）
+check_buf() {
+    if ! command_exists buf; then
+        info "正在安装 buf CLI..."
+        if [[ "$PLATFORM" == "macos" ]]; then
+            brew install buf
+        else
+            # Linux: 通过官方 release 二进制安装
+            local BUF_ARCH
+            BUF_ARCH="$(uname -s)-$(uname -m)"
+            info "下载 buf (${BUF_ARCH})..."
+            curl -sSL "https://github.com/bufbuild/buf/releases/latest/download/buf-${BUF_ARCH}" -o "/tmp/buf"
+            sudo mv "/tmp/buf" "/usr/local/bin/buf"
+            sudo chmod +x "/usr/local/bin/buf"
+        fi
+    fi
+    ok "buf $(buf --version | head -1)"
+}
+
+# 安装 vim-lsp 插件（Vim 8 原生 pack，无需额外依赖）
+check_vim_lsp() {
+    local VIM_LSP_DIR="$REPO_DIR/.vim/pack/plugins/start/vim-lsp"
+    if [[ ! -d "$VIM_LSP_DIR" ]]; then
+        info "正在安装 vim-lsp 插件..."
+        git clone --depth 1 https://github.com/prabirshrestha/vim-lsp.git "$VIM_LSP_DIR"
+    fi
+    ok "vim-lsp 插件"
+}
+
 # 创建软链接
 setup_links() {
     info "配置软链接..."
@@ -249,7 +278,7 @@ verify_setup() {
 
     # 检查核心命令
     local missing=()
-    for cmd in vim git fzf go gopls gofumpt gotags; do
+    for cmd in vim git fzf go gopls gofumpt gotags buf; do
         if ! command_exists "$cmd"; then
             missing+=("$cmd")
         fi
@@ -259,6 +288,13 @@ verify_setup() {
         ok "所有依赖检查通过"
     else
         err "以下依赖未安装: ${missing[*]}"
+    fi
+
+    # 检查 vim-lsp 插件
+    if [[ -d ~/.vim/pack/plugins/start/vim-lsp ]]; then
+        ok "vim-lsp 插件"
+    else
+        warn "vim-lsp 插件未安装"
     fi
 }
 
@@ -281,6 +317,8 @@ main() {
     check_fzf
     check_go
     check_go_tools
+    check_buf
+    check_vim_lsp
     setup_links
     verify_setup
 
@@ -294,13 +332,14 @@ main() {
     echo "  <Space>fg   Git 文件查找"
     echo "  <Space>gd   跳转到定义 (gopls)"
     echo "  <Space>gr   查找引用"
+    echo "  gd          跳转到定义 (Proto)"
+    echo "  gr          查找引用 (Proto)"
     echo "  <Space>n    NERDTree 焦点"
     echo "  <C-n>       NERDTree 开关"
     echo "  <Space>t    Tagbar 开关"
     echo "  <Space>lb   Go Build"
     echo "  <Space>lt   Go Test"
     echo "  <Space>ld   Go Doc"
-    echo "  gr          查找引用 (直接)"
     echo ""
     echo "运行 vim 测试配置是否生效:"
     echo "  vim +GoVimHelp"

@@ -294,6 +294,49 @@ nnoremap <leader>lr :GoRename<CR>
 nnoremap <leader>lx :GoExtract<CR>
 
 " --------------------
+" vim-lsp 配置（Protobuf / Buf LSP）
+" --------------------
+if executable('buf')
+    augroup LspBuf
+        autocmd!
+        autocmd User lsp_setup call lsp#register_server({
+            \ 'name': 'buf',
+            \ 'cmd': {server_info->['buf', 'lsp', 'serve']},
+            \ 'allowlist': ['proto'],
+            \ 'root_uri': {server_info->lsp#utils#path_to_uri(
+            \   lsp#utils#find_nearest_parent_file_directory(
+            \     lsp#utils#get_buffer_path(), ['buf.yaml', '.git']))},
+            \ })
+    augroup END
+endif
+
+" LSP 缓冲区启用时的映射（仅当 LSP 服务器附着时触发）
+function! s:on_lsp_buffer_enabled() abort
+    setlocal omnifunc=lsp#complete
+    if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
+
+    " 导航映射（参照 vim-go 风格）
+    nmap <buffer> gd <plug>(lsp-definition)
+    nmap <buffer> gr <plug>(lsp-references)
+    nmap <buffer> <leader>gd <plug>(lsp-definition)
+    nmap <buffer> <leader>gr <plug>(lsp-references)
+
+    " 额外 LSP 功能（与 vim-go 能力对齐）
+    nmap <buffer> gi <plug>(lsp-implementation)
+    nmap <buffer> gt <plug>(lsp-type-definition)
+    nmap <buffer> K <plug>(lsp-hover)
+    nmap <buffer> <leader>rn <plug>(lsp-rename)
+    nmap <buffer> <leader>ca <plug>(lsp-code-action)
+    nmap <buffer> [g <plug>(lsp-previous-diagnostic)
+    nmap <buffer> ]g <plug>(lsp-next-diagnostic)
+endfunction
+
+augroup lsp_install
+    autocmd!
+    autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
+augroup END
+
+" --------------------
 " fzf 配置（模糊查找）
 " --------------------
 " 文件查找
@@ -548,7 +591,9 @@ function! GoVimHelp()
     echo "<Space>ff   : 查找文件 (fzf)"
     echo "<Space>fb   : 查找 Buffer"
     echo "<Space>t    : Tagbar 开关"
-    echo "gr          : 查找引用 (直接)"
+    echo "gr          : 查找引用 (Go)"
+    echo "gd          : 跳转到定义 (Proto)"
+    echo "gr          : 查找引用 (Proto)"
     echo "========================"
 endfunction
 
