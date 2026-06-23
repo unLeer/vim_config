@@ -620,22 +620,13 @@ function! s:definitionHandler(next, msg) abort dict
   " gopls returns a []Location; just take the first one.
   let l:msg = a:msg[0]
 
-  " Support LocationLink (LSP 3.17+ / gopls v0.22.0+)
-  if has_key(l:msg, 'targetUri')
-    let l:uri = l:msg.targetUri
-    let l:range = l:msg.targetSelectionRange
-  else
-    let l:uri = l:msg.uri
-    let l:range = l:msg.range
-  endif
-
-  let l:line = s:lineinfile(go#path#FromURI(l:uri), l:range.start.line+1)
+  let l:line = s:lineinfile(go#path#FromURI(l:msg.uri), l:msg.range.start.line+1)
   if l:line is -1
     call go#util#EchoWarning('could not find definition')
     return
   endif
 
-  let l:args = [[printf('%s:%d:%d: %s', go#path#FromURI(l:uri), l:range.start.line+1, go#lsp#lsp#PositionOf(l:line, l:range.start.character), 'lsp does not supply a description')]]
+  let l:args = [[printf('%s:%d:%d: %s', go#path#FromURI(l:msg.uri), l:msg.range.start.line+1, go#lsp#lsp#PositionOf(l:line, l:msg.range.start.character), 'lsp does not supply a description')]]
   call call(a:next, l:args)
 endfunction
 

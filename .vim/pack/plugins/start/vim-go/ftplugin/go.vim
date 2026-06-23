@@ -135,6 +135,4 @@ augroup end
 let &cpo = s:cpo_save
 unlet s:cpo_save
 
-runtime! ftplugin/go/*.vim
-
 " vim: sw=2 ts=2 et
