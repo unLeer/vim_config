@@ -255,6 +255,10 @@ nnoremap <leader>gp :GoChannelPeers<CR>
 " 直接 gr 查找引用（不依赖 leader 键）
 nnoremap gr :GoReferrers<CR>
 
+" gmr 缩写：等价于 :GoModReload（刷新 gopls 的 go.mod 缓存）
+" 用户自定义命令必须大写开头，用 cnoreabbrev 提供全小写的便捷写法
+cnoreabbrev gmr GoModReload
+
 " 检查与构建
 " 构建
 nnoremap <leader>lb :GoBuild<CR>

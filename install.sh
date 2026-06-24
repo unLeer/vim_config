@@ -236,6 +236,25 @@ check_vim_lsp() {
     ok "vim-lsp 插件"
 }
 
+# 安装/更新 vim-go 插件（保留 .git 以便后续 pull 升级）
+check_vim_go() {
+    local VIM_GO_DIR="$REPO_DIR/.vim/pack/plugins/start/vim-go"
+    if [[ ! -d "$VIM_GO_DIR/.git" ]]; then
+        # 旧版无 .git，删掉重新 clone
+        if [[ -d "$VIM_GO_DIR" ]]; then
+            info "移除旧版 vim-go（无 .git），重新 clone..."
+            rm -rf "$VIM_GO_DIR"
+        fi
+        info "正在安装 vim-go 插件..."
+        git clone --depth 1 https://github.com/fatih/vim-go.git "$VIM_GO_DIR"
+    else
+        # 已有 .git，尝试 pull 更新
+        info "正在更新 vim-go 插件..."
+        git -C "$VIM_GO_DIR" pull origin master || warn "vim-go 更新失败，将使用本地版本"
+    fi
+    ok "vim-go 插件"
+}
+
 # 创建软链接
 setup_links() {
     info "配置软链接..."
@@ -296,6 +315,13 @@ verify_setup() {
     else
         warn "vim-lsp 插件未安装"
     fi
+
+    # 检查 vim-go 插件
+    if [[ -d ~/.vim/pack/plugins/start/vim-go ]]; then
+        ok "vim-go 插件"
+    else
+        warn "vim-go 插件未安装"
+    fi
 }
 
 # 主流程
@@ -319,6 +345,7 @@ main() {
     check_go_tools
     check_buf
     check_vim_lsp
+    check_vim_go
     setup_links
     verify_setup
 

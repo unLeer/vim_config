@@ -185,11 +185,6 @@ function! go#path#FromURI(uri) abort
         let l:path = substitute(l:path[1:], '/', '\\', 'g')
     endif
 
-    " macOS: strip /private prefix that gopls returns (e.g. /private/Users/...)
-    if l:path =~# '^/private/'
-        let l:path = l:path[8:]
-    endif
-
     return l:path
 endfunction
 
