@@ -250,3 +250,95 @@ _gwt_remove() {
     echo "gwt: 正在删除 worktree $wt_path"
     git worktree remove "${flags[@]}" "$wt_path"
 }
+
+# ============================================================
+# zsh 补全
+# ============================================================
+
+# 列出已有 worktree 的分支名
+_gwt_worktree_branches() {
+    local -a branches
+    while IFS= read -r line; do
+        if [[ "$line" == branch* ]]; then
+            branches+=("${line#branch refs/heads/}")
+        elif [[ "$line" == detached* ]]; then
+            branches+=("detached")
+        fi
+    done < <(git worktree list --porcelain 2>/dev/null)
+    _describe -t branches 'worktree branches' branches
+}
+
+# 列出本地分支名
+_gwt_local_branches() {
+    local -a branches
+    branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
+    _describe -t branches 'branches' branches
+}
+
+# 列出 worktree 路径
+_gwt_worktree_paths() {
+    local -a paths
+    while IFS= read -r line; do
+        if [[ "$line" == worktree* ]]; then
+            paths+=("${line#worktree }")
+        fi
+    done < <(git worktree list --porcelain 2>/dev/null)
+    _describe -t paths 'worktree paths' paths
+}
+
+_gwt() {
+    local cmd="${words[2]:-}"
+    local prev="${words[$((CURRENT-1))]:-}"
+
+    # 补全第一个子命令
+    if [[ $CURRENT -eq 2 ]]; then
+        _values 'gwt command' \
+            'add[create branch + worktree]' \
+            'checkout[cd into worktree]' \
+            'co[alias for checkout]' \
+            'remove[remove worktree]' \
+            'rm[alias for remove]' \
+            'list[list worktrees]' \
+            'lock[lock worktree]' \
+            'unlock[unlock worktree]' \
+            'move[move worktree]' \
+            'prune[prune stale worktrees]' \
+            'repair[repair worktree admin files]'
+        return
+    fi
+
+    case "$cmd" in
+        checkout|co)
+            # gwt checkout -b <new-branch> 时补全新分支名（用本地分支做参考）
+            if [[ "$prev" == "-b" || "$prev" == "-B" ]]; then
+                _gwt_local_branches
+            else
+                _gwt_worktree_branches
+            fi
+            ;;
+        remove|rm)
+            _gwt_worktree_branches
+            ;;
+        add)
+            if [[ "$prev" == "-b" || "$prev" == "-B" ]]; then
+                _gwt_local_branches
+            else
+                _gwt_local_branches
+            fi
+            ;;
+        lock|unlock|repair)
+            _gwt_worktree_paths
+            ;;
+        move)
+            _path_files -/
+            ;;
+        *)
+            _files
+            ;;
+    esac
+}
+
+# 注册补全
+if (( $+functions[compdef] )); then
+    compdef _gwt gwt
+fi
