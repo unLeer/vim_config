@@ -482,6 +482,64 @@ let g:gitgutter_sign_modified = '~'
 let g:gitgutter_sign_removed = '-'
 
 " --------------------
+" Git 快捷键
+" --------------------
+" gb: 查看当前行是谁写的（git blame）
+function! GitBlameLine() abort
+    let l:file = resolve(expand('%:p'))
+    if l:file == ''
+        echo 'git blame: 没有文件'
+        return
+    endif
+    let l:dir = fnamemodify(l:file, ':h')
+    let l:gitroot = system('cd ' . shellescape(l:dir) . ' && git rev-parse --show-toplevel 2>/dev/null')[:-2]
+    if l:gitroot == ''
+        echo 'git blame: 不在 git 仓库中'
+        return
+    endif
+    let l:relpath = substitute(l:file, '^' . escape(l:gitroot, '/\') . '/', '', '')
+    let l:cmd = 'cd ' . shellescape(l:gitroot) . ' && git blame -L ' . line('.') . ',' . line('.') . ' -- ' . shellescape(l:relpath)
+    let l:output = system(l:cmd)
+    let l:output = substitute(l:output, '\n$', '', '')
+    if l:output == ''
+        echo 'git blame: 无输出'
+    else
+        echo l:output
+    endif
+endfunction
+nnoremap gb :call GitBlameLine()<CR>
+
+" visual 模式下 gb：在新窗口显示选中范围的 blame
+function! GitBlameRange() abort
+    let l:file = resolve(expand('%:p'))
+    if l:file == ''
+        echo 'git blame: 没有文件'
+        return
+    endif
+    let l:dir = fnamemodify(l:file, ':h')
+    let l:gitroot = system('cd ' . shellescape(l:dir) . ' && git rev-parse --show-toplevel 2>/dev/null')[:-2]
+    if l:gitroot == ''
+        echo 'git blame: 不在 git 仓库中'
+        return
+    endif
+    let l:relpath = substitute(l:file, '^' . escape(l:gitroot, '/\') . '/', '', '')
+    let l:start = line("'<")
+    let l:end = line("'>")
+    let l:cmd = 'cd ' . shellescape(l:gitroot) . ' && git blame -L ' . l:start . ',' . l:end . ' -- ' . shellescape(l:relpath)
+    let l:output = systemlist(l:cmd)
+    if empty(l:output)
+        echo 'git blame: 无输出'
+        return
+    endif
+    belowright new
+    setlocal buftype=nofile bufhidden=wipe noswapfile nowrap
+    call setline(1, l:output)
+    setlocal nomodifiable
+    resize 10
+endfunction
+vnoremap gb :<C-u>call GitBlameRange()<CR>
+
+" --------------------
 " 通用快捷键
 " --------------------
 " 窗口导航
