@@ -539,6 +539,38 @@ function! GitBlameRange() abort
 endfunction
 vnoremap gb :<C-u>call GitBlameRange()<CR>
 
+" gB: 查看整个文件的 git blame
+function! GitBlameFile() abort
+    let l:file = resolve(expand('%:p'))
+    if l:file == ''
+        echo 'git blame: 没有文件'
+        return
+    endif
+    let l:dir = fnamemodify(l:file, ':h')
+    let l:gitroot = system('cd ' . shellescape(l:dir) . ' && git rev-parse --show-toplevel 2>/dev/null')[:-2]
+    if l:gitroot == ''
+        echo 'git blame: 不在 git 仓库中'
+        return
+    endif
+    let l:relpath = substitute(l:file, '^' . escape(l:gitroot, '/\') . '/', '', '')
+    let l:cmd = 'cd ' . shellescape(l:gitroot) . ' && git blame -- ' . shellescape(l:relpath)
+    let l:output = systemlist(l:cmd)
+    if empty(l:output)
+        echo 'git blame: 无输出'
+        return
+    endif
+    " 在右侧垂直分割显示，方便对照原文件
+    vsplit __GitBlame__
+    setlocal buftype=nofile bufhidden=wipe noswapfile nowrap
+    call setline(1, l:output)
+    setlocal nomodifiable
+    setlocal filetype=gitblame
+    " 绑定 q 关闭 blame 窗口
+    nnoremap <buffer> q :bdelete!<CR>
+endfunction
+nnoremap gB :call GitBlameFile()<CR>
+command! GitBlameFile call GitBlameFile()
+
 " --------------------
 " 通用快捷键
 " --------------------
