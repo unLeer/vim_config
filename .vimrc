@@ -568,7 +568,7 @@ function! GitBlameFile() abort
     " 绑定 q 关闭 blame 窗口
     nnoremap <buffer> q :bdelete!<CR>
 endfunction
-nnoremap gB :call GitBlameFile()<CR>
+nnoremap gba :call GitBlameFile()<CR>
 command! GitBlameFile call GitBlameFile()
 
 " --------------------
