@@ -1,14 +1,21 @@
 #!/usr/bin/env bash
+
+# 如果用户用 `sh install.sh` 执行，而当前 sh 不是 bash，则重新用 bash 执行
+# （脚本使用了 bash 数组、[[ ]] 等特性，dash 等会解析失败）
+if [ -z "${BASH_VERSION:-}" ]; then
+    exec bash "$0" "$@"
+fi
+
 set -euo pipefail
 
 # 防止被 source 执行
-if [[ "$0" != "$BASH_SOURCE" ]]; then
-    echo "错误：请直接执行 ./install.sh，不要用 source 或 . 运行"
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+    echo "错误：请直接执行 ./install.sh 或 sh install.sh，不要用 source 或 . 运行"
     return 1
 fi
 
 # ============================================
-# Vim 配置一键安装脚本
+# Vim / zsh 配置一键安装脚本
 # 支持 macOS 和 Linux
 # ============================================
 
@@ -21,10 +28,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-ok()   { echo -e "${GREEN}[OK]${NC}   $1"; }
-warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-err()  { echo -e "${RED}[ERR]${NC}  $1"; exit 1; }
+info() { printf '%b\n' "${BLUE}[INFO]${NC} $1"; }
+ok()   { printf '%b\n' "${GREEN}[OK]${NC}   $1"; }
+warn() { printf '%b\n' "${YELLOW}[WARN]${NC} $1"; }
+err()  { printf '%b\n' "${RED}[ERR]${NC}  $1"; exit 1; }
 
 # 检测操作系统
 detect_platform() {
@@ -105,6 +112,48 @@ check_git() {
         fi
     fi
     ok "Git $(git --version | head -1)"
+}
+
+# 检查并安装 zsh
+check_zsh() {
+    if ! command_exists zsh; then
+        info "正在安装 zsh..."
+        if [[ "$PLATFORM" == "macos" ]]; then
+            brew install zsh
+        else
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq zsh
+        fi
+    fi
+    ok "zsh $(zsh --version | head -1)"
+
+    # 提示用户确认默认 shell 是否为 zsh（不自动修改，避免意外）
+    local current_shell
+    current_shell=$(dscl . -read "$HOME" UserShell 2>/dev/null | awk '{print $2}' || echo "$SHELL")
+    if [[ "$current_shell" != *"zsh"* ]]; then
+        warn "当前默认 shell 不是 zsh ($current_shell)"
+        info "如需切换，请手动执行：chsh -s $(command -v zsh)"
+    fi
+}
+
+# 检查并安装 Oh My Zsh
+check_ohmyzsh() {
+    local OMZ_DIR="$HOME/.oh-my-zsh"
+    if [[ ! -d "$OMZ_DIR" ]]; then
+        info "正在安装 Oh My Zsh..."
+        git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$OMZ_DIR"
+    fi
+    ok "Oh My Zsh"
+}
+
+# 检查 claude-p 快捷脚本（Claude Code 生成，非必需）
+check_claude_p() {
+    if [[ ! -f "$HOME/.claude/claude-p.zsh" ]]; then
+        warn "未找到 ~/.claude/claude-p.zsh，claude-p 快捷命令不可用"
+        info "请在 Claude Code 中完成授权/安装以生成该文件"
+    else
+        ok "claude-p"
+    fi
 }
 
 # 检查并安装 fzf
@@ -274,16 +323,36 @@ setup_links() {
         warn "备份 ~/.vimrc -> $backup"
     fi
 
+    if [[ -e ~/.gwt.zsh && ! -L ~/.gwt.zsh ]]; then
+        local backup
+        backup="$HOME/.gwt.zsh.backup.$(date +%s)"
+        mv ~/.gwt.zsh "$backup"
+        warn "备份 ~/.gwt.zsh -> $backup"
+    fi
+
+    if [[ -e ~/.zshrc && ! -L ~/.zshrc ]]; then
+        local backup
+        backup="$HOME/.zshrc.backup.$(date +%s)"
+        mv ~/.zshrc "$backup"
+        warn "备份 ~/.zshrc -> $backup"
+    fi
+
     # 删除旧软链接
     [[ -L ~/.vim ]] && rm -f ~/.vim
     [[ -L ~/.vimrc ]] && rm -f ~/.vimrc
+    [[ -L ~/.gwt.zsh ]] && rm -f ~/.gwt.zsh
+    [[ -L ~/.zshrc ]] && rm -f ~/.zshrc
 
     # 创建新软链接
     ln -sfn "$REPO_DIR/.vim" ~/.vim
     ln -sfn "$REPO_DIR/.vimrc" ~/.vimrc
+    ln -sfn "$REPO_DIR/shell/gwt.zsh" ~/.gwt.zsh
+    ln -sfn "$REPO_DIR/.zshrc" ~/.zshrc
 
     ok "~/.vim  -> $REPO_DIR/.vim"
     ok "~/.vimrc -> $REPO_DIR/.vimrc"
+    ok "~/.gwt.zsh -> $REPO_DIR/shell/gwt.zsh"
+    ok "~/.zshrc -> $REPO_DIR/.zshrc"
 }
 
 # 验证配置
@@ -297,7 +366,7 @@ verify_setup() {
 
     # 检查核心命令
     local missing=()
-    for cmd in vim git fzf go gopls gofumpt gotags buf; do
+    for cmd in zsh vim git fzf go gopls gofumpt gotags buf; do
         if ! command_exists "$cmd"; then
             missing+=("$cmd")
         fi
@@ -327,7 +396,7 @@ verify_setup() {
 # 主流程
 main() {
     echo "========================================"
-    echo "  Vim 配置一键安装"
+    echo "  Vim + zsh 配置一键安装"
     echo "  平台: $PLATFORM"
     echo "  仓库: $REPO_DIR"
     echo "========================================"
@@ -339,6 +408,8 @@ main() {
 
     ensure_brew
     check_git
+    check_zsh
+    check_ohmyzsh
     check_vim
     check_fzf
     check_go
@@ -347,6 +418,7 @@ main() {
     check_vim_lsp
     check_vim_go
     setup_links
+    check_claude_p
     verify_setup
 
     echo ""
@@ -354,7 +426,20 @@ main() {
     echo "  ✅ 安装完成！"
     echo "========================================"
     echo ""
-    echo "常用快捷键:"
+    echo "终端配置:"
+    echo "  ~/.zshrc    -> $REPO_DIR/.zshrc"
+    echo "  ~/.gwt.zsh  -> $REPO_DIR/shell/gwt.zsh"
+    echo "  ~/.vim      -> $REPO_DIR/.vim"
+    echo "  ~/.vimrc    -> $REPO_DIR/.vimrc"
+    echo ""
+    echo "常用 gwt 命令:"
+    echo "  gwt add featxxx           新建分支 + worktree"
+    echo "  gwt add featxxx main      基于 main 新建分支 + worktree"
+    echo "  gwt checkout featxxx      进入对应 worktree（支持模糊匹配）"
+    echo "  gwt checkout -b featxxx   新建并直接进入 worktree"
+    echo "  gwt remove featxxx        删除 worktree（支持模糊匹配）"
+    echo ""
+    echo "常用 Vim 快捷键:"
     echo "  <Space>ff   文件查找 (fzf)"
     echo "  <Space>fg   Git 文件查找"
     echo "  <Space>gd   跳转到定义 (gopls)"
@@ -370,6 +455,8 @@ main() {
     echo ""
     echo "运行 vim 测试配置是否生效:"
     echo "  vim +GoVimHelp"
+    echo ""
+    echo "请重新打开终端，或执行: source ~/.zshrc"
     echo ""
 }
 
