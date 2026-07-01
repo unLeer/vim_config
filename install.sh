@@ -68,7 +68,22 @@ ensure_brew() {
 
 # 检查并安装 Vim
 check_vim() {
-    if ! command_exists vim; then
+    local VIM_CMD="vim"
+
+    if [[ "$PLATFORM" == "macos" ]]; then
+        # macOS 系统自带的 vim 是 Normal 版本，功能和性能都较弱，
+        # 强制安装 Homebrew 的 Huge 版本，并优先使用它。
+        if ! brew list vim >/dev/null 2>&1; then
+            info "正在安装 Homebrew Vim（huge 版本）..."
+            brew install vim
+        else
+            info "正在更新 Homebrew Vim..."
+            brew upgrade vim 2>/dev/null || true
+        fi
+        VIM_CMD="/opt/homebrew/bin/vim"
+    fi
+
+    if ! command_exists "$VIM_CMD"; then
         info "正在安装 Vim..."
         if [[ "$PLATFORM" == "macos" ]]; then
             brew install vim
@@ -80,19 +95,27 @@ check_vim() {
 
     # 检查 Vim 版本 >= 8
     local vim_ver
-    vim_ver=$(vim --version | head -1 | grep -o 'Vi IMproved [0-9]\+' | grep -o '[0-9]\+' || echo "0")
+    vim_ver=$("$VIM_CMD" --version | head -1 | grep -o 'Vi IMproved [0-9]\+' | grep -o '[0-9]\+' || echo "0")
     if [[ "$vim_ver" -lt 8 ]]; then
         err "需要 Vim 8.0+，当前版本: $vim_ver"
     fi
-    ok "Vim $vim_ver"
+
+    # 检查是否为 huge 版本（英文 Huge / 中文 巨型）
+    local vim_features
+    vim_features=$("$VIM_CMD" --version | grep -oE 'Huge version|Big version|Normal version|Small version|Tiny version|巨型版本|大型版本|普通版本|小型版本|微型版本' | head -1 || echo "未知")
+    if [[ "$vim_features" == *"Huge"* || "$vim_features" == *"巨型"* ]]; then
+        ok "Vim $vim_ver (huge)"
+    else
+        warn "Vim $vim_ver ($vim_features)，建议安装 Homebrew 的 huge 版本以获得完整功能"
+    fi
 
     # 检查 +clipboard 支持（.vimrc 中 set clipboard=unnamedplus 需要）
-    if ! vim --version | grep -q '+clipboard'; then
+    if ! "$VIM_CMD" --version | grep -q '+clipboard'; then
         warn "Vim 未编译 +clipboard，系统剪贴板共享可能失效"
         if [[ "$PLATFORM" == "macos" ]]; then
             info "尝试通过 brew reinstall vim 获取 +clipboard..."
             brew reinstall vim
-            if ! vim --version | grep -q '+clipboard'; then
+            if ! "$VIM_CMD" --version | grep -q '+clipboard'; then
                 warn "仍然缺少 +clipboard，请检查 PATH 中 brew 的 vim 是否优先于系统 vim"
             fi
         fi
