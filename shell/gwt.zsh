@@ -153,47 +153,39 @@ _gwt_find_path() {
         return 1
     fi
 
-    local -a entries
+    # 建立分支名 -> worktree 路径 的映射
+    typeset -A branch_to_path
     local wt="" br=""
     while IFS= read -r line; do
         if [[ "$line" == worktree* ]]; then
             wt="${line#worktree }"
         elif [[ "$line" == branch* ]]; then
             br="${line#branch refs/heads/}"
-            entries+=("${br}|${wt}")
+            branch_to_path[$br]="$wt"
         elif [[ "$line" == detached* && -n "$wt" ]]; then
-            entries+=("detached|${wt}")
+            branch_to_path[detached]="$wt"
         elif [[ -z "$line" ]]; then
             wt=""
             br=""
         fi
     done < <(git worktree list --porcelain 2>/dev/null)
 
-    if [[ ${#entries} -eq 0 ]]; then
+    if [[ ${#branch_to_path} -eq 0 ]]; then
         echo "gwt: 未找到任何 worktree" >&2
         return 1
     fi
 
     # 精确匹配优先
-    local exact=""
-    for e in "${entries[@]}"; do
-        local b="${e%%|*}"
-        if [[ "$b" == "$query" ]]; then
-            exact="${e#*|}"
-            break
-        fi
-    done
-    if [[ -n "$exact" ]]; then
-        echo "$exact"
+    if [[ -n "${branch_to_path[$query]:-}" ]]; then
+        echo "${branch_to_path[$query]}"
         return 0
     fi
 
-    # 模糊匹配
+    # 模糊匹配（只匹配分支名）
     local -a matches
-    for e in "${entries[@]}"; do
-        local b="${e%%|*}"
+    for b in "${(@k)branch_to_path}"; do
         if [[ "$b" == *"$query"* ]]; then
-            matches+=("$e")
+            matches+=("$b")
         fi
     done
 
@@ -201,19 +193,20 @@ _gwt_find_path() {
         echo "gwt: 没有 worktree 匹配 '$query'" >&2
         return 1
     elif [[ ${#matches} -eq 1 ]]; then
-        echo "${matches[1]#*|}"
+        echo "${branch_to_path[$matches[1]]}"
         return 0
     else
         if command -v fzf >/dev/null 2>&1; then
             local selected
-            selected=$(printf '%s\n' "${matches[@]}" | fzf --prompt="worktree> " --height=40% --reverse)
+            # fzf 只显示分支名，不再混入路径
+            selected=$(printf '%s\n' "${matches[@]}" | fzf --prompt="branch> " --height=40% --reverse)
             if [[ -n "$selected" ]]; then
-                echo "${selected#*|}"
+                echo "${branch_to_path[$selected]}"
                 return 0
             fi
         else
             echo "gwt: '$query' 匹配到多个 worktree：" >&2
-            printf '  %s\n' "${matches[@]%%|*}" >&2
+            printf '  %s\n' "${matches[@]}" >&2
         fi
         return 1
     fi
