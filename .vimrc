@@ -374,7 +374,7 @@ let g:fzf_action = {
 
 " fzf 窗口设置
 let g:fzf_layout = { 'down': '40%' }
-let g:fzf_preview_window = ['right:50%:border-left', 'ctrl-/']
+let g:fzf_preview_window = ['right:50%:border-rounded', 'ctrl-/']
 
 " Rg 命令使用真正的 ripgrep（避免 shell 函数干扰）
 let g:fzf_rg_bin = '/opt/homebrew/bin/rg'
