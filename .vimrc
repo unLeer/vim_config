@@ -385,10 +385,9 @@ function! s:RgWithPathPreview(query, bang) abort
     let l:spec = fzf#vim#with_preview()
     " 用自定义 preview 覆盖默认的，并把前两行（File: path + 空行）设为固定表头
     call extend(l:spec.options, [
-        \ '--preview-window', 'right:50%~2',
+        \ '--preview-window', 'right:50%,~2',
         \ '--preview', s:fzf_rg_preview
-    \ ])
-    call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(a:query), 1, l:spec, a:bang)
+    \ ])    call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(a:query), 1, l:spec, a:bang)
 endfunction
 command! -bang -nargs=* Rg call s:RgWithPathPreview(<q-args>, <bang>0)
 
