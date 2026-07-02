@@ -383,8 +383,11 @@ let s:fzf_preview_script = expand('~/.vim/pack/plugins/start/fzf.vim/bin/preview
 let s:fzf_rg_preview = 'echo "File: {1}" && echo "" && bash ' . s:fzf_preview_script . ' {}'
 function! s:RgWithPathPreview(query, bang) abort
     let l:spec = fzf#vim#with_preview()
-    " 追加 --preview 覆盖 with_preview 默认的 preview 命令
-    call extend(l:spec.options, ['--preview', s:fzf_rg_preview])
+    " 用自定义 preview 覆盖默认的，并把前两行（File: path + 空行）设为固定表头
+    call extend(l:spec.options, [
+        \ '--preview-window', 'right:50%~2',
+        \ '--preview', s:fzf_rg_preview
+    \ ])
     call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(a:query), 1, l:spec, a:bang)
 endfunction
 command! -bang -nargs=* Rg call s:RgWithPathPreview(<q-args>, <bang>0)
