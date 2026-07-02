@@ -387,7 +387,8 @@ function! s:RgWithPathPreview(query, bang) abort
     call extend(l:spec.options, [
         \ '--preview-window', 'right:50%,~2',
         \ '--preview', s:fzf_rg_preview
-    \ ])    call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(a:query), 1, l:spec, a:bang)
+    \ ])
+    call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(a:query), 1, l:spec, a:bang)
 endfunction
 command! -bang -nargs=* Rg call s:RgWithPathPreview(<q-args>, <bang>0)
 
