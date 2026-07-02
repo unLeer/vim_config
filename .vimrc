@@ -374,12 +374,14 @@ let g:fzf_action = {
 
 " fzf 窗口设置
 let g:fzf_layout = { 'down': '40%' }
-let g:fzf_preview_window = ['right:50%:border-rounded', 'ctrl-/']
+let g:fzf_preview_window = ['right:50%', 'ctrl-/']
 
 " Rg 命令使用真正的 ripgrep（避免 shell 函数干扰）
 let g:fzf_rg_bin = '/opt/homebrew/bin/rg'
-" --preview-label {1} 在预览窗口上方显示完整文件路径
-command! -bang -nargs=* Rg call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(<q-args>), 1, fzf#vim#with_preview({'options': ['--preview-label', '{1}']}), <bang>0)
+" 预览窗口顶部先显示完整文件路径，再显示文件内容
+let s:fzf_preview_script = expand('~/.vim/pack/plugins/start/fzf.vim/bin/preview.sh')
+let s:fzf_rg_preview = 'echo "File: {1}" && echo "" && bash ' . s:fzf_preview_script . ' {}'
+command! -bang -nargs=* Rg call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(<q-args>), 1, fzf#vim#with_preview({'options': ['--preview', s:fzf_rg_preview]}), <bang>0)
 
 " 在当前文件目录下搜索
 function! RgInCurrentFileDir(...)
