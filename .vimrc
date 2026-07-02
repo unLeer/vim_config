@@ -378,14 +378,14 @@ let g:fzf_preview_window = ['right:50%', 'ctrl-/']
 
 " Rg 命令使用真正的 ripgrep（避免 shell 函数干扰）
 let g:fzf_rg_bin = '/opt/homebrew/bin/rg'
-" 预览窗口顶部先显示完整文件路径，再显示文件内容
+" 预览窗口顶部先显示完整文件路径（超过 80 列自动折行），再显示文件内容
 let s:fzf_preview_script = expand('~/.vim/pack/plugins/start/fzf.vim/bin/preview.sh')
-let s:fzf_rg_preview = 'echo "File: {1}" && echo "" && bash ' . s:fzf_preview_script . ' {}'
+let s:fzf_rg_preview = 'printf "File: %s\n" {1} | fold -w 80 && printf "\n" && bash ' . s:fzf_preview_script . ' {}'
 function! s:RgWithPathPreview(query, bang) abort
     let l:spec = fzf#vim#with_preview()
-    " 用自定义 preview 覆盖默认的，并把前两行（File: path + 空行）设为固定表头
+    " 用自定义 preview 覆盖默认的；前 4 行固定为表头（File: 折行路径 + 空行）
     call extend(l:spec.options, [
-        \ '--preview-window', 'right:50%,~2',
+        \ '--preview-window', 'right:50%,~4',
         \ '--preview', s:fzf_rg_preview
     \ ])
     call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(a:query), 1, l:spec, a:bang)
