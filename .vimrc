@@ -380,12 +380,12 @@ let g:fzf_preview_window = ['right:50%', 'ctrl-/']
 let g:fzf_rg_bin = '/opt/homebrew/bin/rg'
 " 预览窗口顶部先显示完整文件路径（超过 80 列自动折行），再显示文件内容
 let s:fzf_preview_script = expand('~/.vim/pack/plugins/start/fzf.vim/bin/preview.sh')
-let s:fzf_rg_preview = 'printf "File: %s\n" {1} | fold -w 80 && printf "\n" && bash ' . s:fzf_preview_script . ' {}'
+let s:fzf_rg_preview = 'printf "File: %s\n" {1} | fold -w 60 && printf "\n" && bash ' . s:fzf_preview_script . ' {}'
 function! s:BuildRgSpec() abort
     let l:spec = fzf#vim#with_preview()
     " 用自定义 preview 覆盖默认的；前 4 行固定为表头（File: 折行路径 + 空行）
     call extend(l:spec.options, [
-        \ '--preview-window', 'right:50%,~4,noinfo',
+        \ '--preview-window', 'right:50%,~4,noinfo,wrap',
         \ '--preview', s:fzf_rg_preview
     \ ])
     return l:spec
