@@ -380,12 +380,12 @@ let g:fzf_preview_window = ['right:50%', 'ctrl-/']
 let g:fzf_rg_bin = '/opt/homebrew/bin/rg'
 " 预览窗口顶部先显示完整文件路径（超过 80 列自动折行），再显示文件内容
 let s:fzf_preview_script = expand('~/.vim/pack/plugins/start/fzf.vim/bin/preview.sh')
-let s:fzf_rg_preview = 'printf "File: %s\n" {1} | fold -w 60 && printf "\n" && bash ' . s:fzf_preview_script . ' {}'
+let s:fzf_rg_preview = 'printf "File: %s\n" {1} | fold -w 80 && printf "\n" && bash ' . s:fzf_preview_script . ' {}'
 function! s:BuildRgSpec() abort
     let l:spec = fzf#vim#with_preview()
     " 用自定义 preview 覆盖默认的；前 4 行固定为表头（File: 折行路径 + 空行）
     call extend(l:spec.options, [
-        \ '--preview-window', 'right:50%,~4,noinfo,wrap',
+        \ '--preview-window', 'right:50%,~4,noinfo',
         \ '--preview', s:fzf_rg_preview
     \ ])
     return l:spec
@@ -402,6 +402,8 @@ function! RgInCurrentFileDir(...)
     if l:dir == ''
         let l:dir = getcwd()
     endif
+    " 转成相对路径，避免 ripgrep 输出绝对路径导致列表项过长、侵入边框
+    let l:dir = fnamemodify(l:dir, ':.')
     let l:query = a:0 > 0 ? a:1 : ''
     call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(l:query) . ' ' . shellescape(l:dir), 1, s:BuildRgSpec())
 endfunction
