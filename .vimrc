@@ -374,12 +374,12 @@ let g:fzf_action = {
 
 " fzf 窗口设置
 let g:fzf_layout = { 'down': '40%' }
-" preview 窗口在右侧占 50%，按 ctrl-/ 切换；标题显示完整文件路径
-let g:fzf_preview_window = ['right:50%:border-left:title:{1}', 'ctrl-/']
+let g:fzf_preview_window = ['right:50%:border-left', 'ctrl-/']
 
 " Rg 命令使用真正的 ripgrep（避免 shell 函数干扰）
 let g:fzf_rg_bin = '/opt/homebrew/bin/rg'
-command! -bang -nargs=* Rg call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(<q-args>), 1, fzf#vim#with_preview(), <bang>0)
+" --preview-label {1} 在预览窗口上方显示完整文件路径
+command! -bang -nargs=* Rg call fzf#vim#grep(g:fzf_rg_bin . ' --column --line-number --no-heading --color=always --smart-case ' . shellescape(<q-args>), 1, fzf#vim#with_preview({'options': ['--preview-label', '{1}']}), <bang>0)
 
 " 在当前文件目录下搜索
 function! RgInCurrentFileDir(...)
